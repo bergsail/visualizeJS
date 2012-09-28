@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stickman</title>
+    <script>
+        //request Frame
+        window.requestAnimFrame = (function(callback) {
+            return window.requestAnimationFrame ||
+                    window.webkitRequestAnimationFrame ||
+                    window.mozRequestAnimationFrame ||
+                    window.oRequestAnimationFrame ||
+                    window.msRequestAnimationFrame ||
+                    function(callback) {
+                        window.setTimeout(callback, 1000 / 60);
+                    };
+        })();
+
+        // draw stickman
+        function drawStickman(stickman, context){
+            context.beginPath();
+            context.arc(stickman.headmiddlex, stickman.headmiddley, stickman.headradius, 0, 2 * Math.PI, false);
+            context.fillStyle = 'green';
+            context.fill();
+            context.beginPath();
+            context.moveTo(stickman.lefthandx, stickman.lefthandy);
+            context.lineTo(stickman.leftelbowx, stickman.leftelbowy);
+            context.lineTo(stickman.neckx, stickman.necky);
+            context.lineTo(stickman.rightelbowx, stickman.rightelbowy);
+            context.lineTo(stickman.righthandx, stickman.righthandy);
+            context.moveTo(stickman.neckx, stickman.necky);
+            context.lineTo(stickman.pelvisx, stickman.pelvisy);
+            context.lineTo(stickman.leftkneex, stickman.leftkneey);
+            context.lineTo(stickman.leftfootx, stickman.leftfooty);
+            context.moveTo(stickman.pelvisx, stickman.pelvisy);
+            context.lineTo(stickman.rightkneex, stickman.rightkneey);
+            context.lineTo(stickman.rightfootx, stickman.rightfooty);
+            context.lineWidth = 2;
+            context.strokeStyle = 'green';
+            context.lineCap = 'round';
+            context.stroke();
+         }
+
+        //animate
+        function animate(stickman, canvas, context, startTime) {
+            var time = (new Date()).getTime() - startTime;
+            var amplitude = 0.2;
+
+            // in ms
+            var period = 2000;
+            stickman.pelvisx = amplitude * Math.sin(time * 2 * Math.PI / period) + stickman.pelvisx;
+
+            // clear
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawStickman(stickman, context);
+
+            // request new frame
+            requestAnimFrame(function() {
+              animate(stickman, canvas, context, startTime);
+            });
+          }
+
+        //main
+        window.onload = function() {
+            var canvas = document.getElementById('stickmanCanvas');
+            var context = canvas.getContext('2d');
+                    
+            var stickman = {
+                lefthandx: 50,
+                leftelbowx: 55,
+                neckx: 60,
+                pelvisx: 55,
+                leftkneex: 53,
+                leftfootx: 53,
+                righthandx: 70,
+                rightelbowx: 65,
+                rightkneex: 65,
+                rightfootx: 65,
+                headmiddlex: 60,
+
+                lefthandy: 30,
+                leftelbowy: 33,
+                necky: 30,
+                pelvisy: 38,
+                leftkneey: 45,
+                leftfooty: 53,
+                righthandy: 30,
+                rightelbowy: 33,
+                rightkneey: 45,
+                rightfooty: 53,
+                headmiddley: 22,
+                headradius: 4
+            };  
+
+            drawStickman(stickman, context);
+
+            var startTime = (new Date()).getTime();
+            animate(stickman, canvas, context, startTime);
+
+            // wait one second before starting animation
+            // setTimeout(function() {
+            //   var startTime = (new Date()).getTime();
+            //   animate(stickman, canvas, context, startTime);
+            // }, 1000);
+        };
+    </script>
+</head>
+
+<body style="background-color:white; margin:0;">
+    <canvas id="stickmanCanvas" width="809" height="360"></canvas>
+</body>
+</html>
