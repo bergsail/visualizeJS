@@ -1,62 +1,51 @@
-// set default volume values for each track
-var trackVolumes = {
-			volume0: 1,
-			volume1: 0,
-			volume2: 0,
-			volume3: 0,
-			mute: false
-		};
-
 window.onload = function() {
 
-	var context = new webkitAudioContext(),	// webkit audio context for sound
-		audioFiles = [ 	// tracks
-			'sound/LMFAO_Party_Rock_Anthem_8Bit.mp3'
-		],
-		audioSteps = []; // stores the 4 audio element objects
+	try {
+	    context = new webkitAudioContext();
+	  }
+	  catch(e) {
+	    alert('Web Audio API is not supported in this browser (use Chrome)');
+	  }
 
-	var bufferLoader = new BufferLoader(context, audioFiles, onAudioLoaded); 
-	bufferLoader.load();
+	var context = new webkitAudioContext(),
+			buffer;
 
-	function onAudioLoaded(bufferList) {
 
-		// start interval for drawing rings
+	var loadAudioFile = (function (url) {
+    var request = new XMLHttpRequest();
+
+    request.open('get', 'sound/step0.ogg', true);
+    //request.open('get', 'sound/LMFAO_Party_Rock_Anthem_8Bit.mp3', true);
+    request.responseType = 'arraybuffer';
+
+    request.onload = function () {
+            context.decodeAudioData(request.response,
+                 function(incomingBuffer) {
+                     playAudioFile(incomingBuffer);
+                 }
+            );
+    };
+    request.send();
+	}());
+
+
+	var playAudioFile = function (buffer) {
 		createRings();
 		setInterval(createRings, 215);
 		
-		// create buffer source
-		var bufferSource = context.createBufferSource();
-		bufferSource.buffer = bufferList[0];
-		bufferSource.looping = true;
+    var source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(context.destination);
+    source.noteOn(0); // Play sound immediately
+	};
 
-		// create gain node
-		var gainNode = context.createGainNode();
-		bufferSource.connect(gainNode);
-		gainNode.connect(context.destination);
-		gainNode.gain.value = trackVolumes['volume' + 0];
-		
-
-		// create audio element object
-		var audioElem = {
-			source: bufferSource,
-			gainNode: gainNode
-		}
-
-		audioSteps.push(audioElem);
-
-
-		// start playing loops
-		for(var j = 0; j < audioSteps.length; j++) {
-			audioSteps[j].source.noteOn(0);
-		}
-	}
 
 	//Animations
 	var counter = 0;
 	function createRings() {
 		counter += 1;
 		for(var i = 0; i < 4; i++){
-			var vol = trackVolumes['volume' + i],
+			var vol = 1,
 				perc = Math.max( 1, Math.round((1 - vol) * 10) - 2 );
 			if(vol > 0) {
 				if(vol == 1){
@@ -69,34 +58,5 @@ window.onload = function() {
 		} 
 	}
 
-	//Controls
-	// var gui = new dat.GUI(),
-	// 	trackNames = [
-	// 		'Shaker',
-	// 		'Synth',
-	// 		'Drums',
-	// 		'Wobble'
-	// 	];
-	
-	// // add 5 controls for each track
-	// for(var i = 0; i < 4; i++){
-	// 	gui.add(trackVolumes, 'volume' + i).min(0).max(1).step(0.1).name(trackNames[i]).onChange(function(newValue) {
-	// 		// get index of sound (0 - 4)
-	// 		var index = parseInt(this.property.replace('volume', ''), 10);
-	// 		// set new volume
-	// 		audioSteps[index].gainNode.gain.value = newValue;
-	// 	});
-	// }
-	// // add mute all button
-	// gui.add(trackVolumes, 'mute').name('Mute All').onChange(function(newValue) {
-	// 	if(!newValue) {
-	// 		for(var n = 0; n < 4; n++) {
-	// 			audioSteps[n].gainNode.gain.value = trackVolumes['volume' + n];
-	// 		}
-	// 	}else {
-	// 		for(var n = 0; n < 4; n++) {
-	// 			audioSteps[n].gainNode.gain.value = 0;
-	// 		}
-	// 	}
-	// });
+
 }
