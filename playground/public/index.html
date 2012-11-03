@@ -4,97 +4,119 @@
 		<title>HTML5 Audio Visualizations</title>
 
 		<script type="text/javascript" src="js/libs/paper.js"></script>
-		<script type="text/javascript" src="js/libs/dat.gui.js"></script>
-		<script type="text/javascript" src="js/libs/buffer-loader.js"></script>
-		<script type="text/javascript" src="js/main-2.js"></script>
+		<script type="text/javascript" src="js/libs/webaudio.js"></script>
+		<script type="text/javascript" src="js/libs/tweeneasing.js"></script>
+
 
 		<style type="text/css">
-			html { overflow: hidden; }
+			html { overflow: hidden;}
+			body { margin:0; }
 		</style>
 
-		<script type="text/paperscript" canvas="myCanvas">
+		<script type="text/javascript">
 
-			var rings = [];		// animated rings
+		window.onload = function() {
 
-			// // Create solid-fill circle
-			// var path = new Path.Circle(new Point(225, 100), 50);
-			// path.fillColor = '#000';
+			try {
+				// init the library
+		    var webaudio	= new WebAudio();
+		  }
+		  catch(e) {
+		    alert('WebAudio is not supported in this browser (use Chrome)');
+		  }
 
-			//siehe paper examples
-			var values = {
-		    minPoints: 5,
-		    maxPoints: 15,
-		    minRadius: 30,
-		    maxRadius: 90
-			};
+		  // create a sound
+			var sound	= webaudio.createSound();
+			// load sound.wav and play it
+			//sound.load('sound/step1.ogg', function(sound){
+			sound.load('sound/LMFAO_Party_Rock_Anthem_8Bit.mp3', function(sound){
+				sound.loop(true).play();
+			});
 
-			var radiusDelta = values.maxRadius - values.minRadius;
-			var pointsDelta = values.maxPoints - values.minPoints;
-	    var radius = values.minRadius + Math.random() * radiusDelta;
-	    var points = values.minPoints + Math.floor(Math.random() * pointsDelta);
-	    //var path = createBlob(view.size * Point.random(), radius, points);
-	    //path.fillColor = '#000'
 
-			function createBlob(center, maxRadius, points) {
-			    var path = new Path();
-			    path.closed = true;
-			    for (var i = 0; i < points; i++) {
-			        var delta = new Point({
-			            length: (maxRadius * 0.5) + (Math.random() * maxRadius * 0.5),
-			            angle: (360 / points) * i
-			        });
-			        path.add(center + delta);
-			    }
-			    path.smooth();
-			    return path;
-			}
-
-			//Handler function that is called whenever a view is resized
-			function onResize(event) {
-				project.activeLayer.position = view.center;
-			}
-			onResize();
-		
-			// Add this function to the window, or 'global' scope, so Javascript can reach it
-			window.createRing = function(index) {
-				var ring = createBlob(view.size * Point.random(), radius, points);
-				//var ring = new Path.Circle(new Point(225, 100), 50);
-				ring.fillColor = '#000';
-				//ring.strokeWidth = 10;
-				ring.position = view.center;
-				ring.opacity = 1;
-				rings.push(ring);
-			}
-			
-
-			//The Animation Loop
-
-			function onFrame(event) {
+      // Get a reference to the canvas object
+      var canvas = document.getElementById('myCanvas');
+      // Create an empty project and a view for the canvas:
+      paper.setup(canvas);
+      //var myCircle = new paper.Path.Circle(new paper.Point(canvas.width/2, canvas.height/2), 50);
+			//myCircle.fillColor = 'black';
+			var path = new paper.Path();
+			path.fillColor = 'black';
+			var p1 = new paper.Point(100, 100);
+			var p2 = new paper.Point(100, 150);
+			var p3 = new paper.Point(150, 150);
+			var p4 = new paper.Point(150, 100);
+			path.add(p1, p2, p3, p4);
+			path.closed = true;
+			path.smooth();
+			paper.view.draw();
 				
-				// Animate visible rings
-				var len = rings.length;
-				for(var i = 0; i < len; i++) {
-					var thisRing = rings[i];
-					// scale up					
-					thisRing.scale(1.06);
-					// fade ring out
-					var newOpacity = thisRing.opacity - 0.07;
-					// if faded to 0, remove from canvas
-					if(newOpacity <= 0) {
-						thisRing.remove();
-						rings.unshift();
-					} else {
-						thisRing.opacity = newOpacity;
-					}
-				}
+
+			setInterval(onFrame, 1000/60);
+			
+			function onFrame(event){
+				// neutral value
+				var min		= 0;
+				var max		= 1;
+				var offset	= 0;
+				var range	= 1;
+				var tweenFn	= TWEEN.Easing.Linear.None;
+				// normalization of the scale
+				var scale	= sound.amplitude();
+				// apply the formula
+				scale		= Math.min(scale, max);
+				scale		= Math.max(scale, min);
+				scale		-= min;
+				scale		/= max == min ? 1 : max - min;
+				scale		= tweenFn(scale);
+				scale		*= range;
+				scale		+= offset;
+
+				// // clear the canvas
+				//clearRect(0, 0, canvas.width, canvas.height);
+				// // up to you to find the colors you like
+				// ctx.fillStyle	= "rgb("+Math.floor(1.3*scale*256)+", 0, 0);";
+				// //ctx.fillStyle	= "rgb(250, 0, 0);";
+				// // draw a circle
+				// var radius	= 200+scale * 100;
+				// ctx.beginPath();
+				// ctx.arc(canvas.width/2, canvas.height/2, radius, 0, Math.PI*2, true); 
+				// ctx.closePath();
+				// ctx.fill();
+
+				//var rad = 200+scale * 100;
+				//myCicle = new paper.Path.Circle(new paper.Point(canvas.width/2, canvas.height/2), 50+100*scale);
+				//myCircle.fillColor = 'black';
+
+	    	path.segments[0].point.y = scale*100;
+	    	path.segments[1].point.y = 50 + scale*100;
+	    	path.segments[2].point.y = 50 + scale*100;
+	    	path.segments[3].point.y = scale*100;
+				paper.view.draw();
+			}; 
+
+
+			function createBlob(center) {
+				var radius = 30 + Math.random() * 60;
+	    	var points = 5 + Math.floor(Math.random() * 10);
+		    var path = new paper.Path();
+		    path.closed = true;
+		    for (var i = 0; i < points; i++) {
+		        var delta = new paper.Point({
+		            length: (90 * 0.5) + (Math.random() * 90 * 0.5),
+		            angle: (360 / points) * i
+		        });
+		        path.add(center + delta);
+		    }
+		    path.smooth();
+		    return path;
 			}
+		}
 
 		</script>
 
 	</head>
 	<body>
-		<!-- Create canvas -->
 		<canvas id="myCanvas" resize></canvas>
-		<p>This is modified from a tutorial from here: <a href:"http://www.computerarts.co.uk/tutorials/create-html5-audio-visualisations">link</a></p>
 	</body>
 </html>

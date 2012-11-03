@@ -1,0 +1,100 @@
+<html>
+	<head>
+		
+		<title>HTML5 Audio Visualizations</title>
+
+		<script type="text/javascript" src="js/libs/paper.js"></script>
+		<script type="text/javascript" src="js/libs/dat.gui.js"></script>
+		<script type="text/javascript" src="js/libs/buffer-loader.js"></script>
+		<script type="text/javascript" src="js/main-2.js"></script>
+
+		<style type="text/css">
+			html { overflow: hidden; }
+		</style>
+
+		<script type="text/paperscript" canvas="myCanvas">
+
+			var rings = [];		// animated rings
+
+			// // Create solid-fill circle
+			// var path = new Path.Circle(new Point(225, 100), 50);
+			// path.fillColor = '#000';
+
+			//siehe paper examples
+			var values = {
+		    minPoints: 5,
+		    maxPoints: 15,
+		    minRadius: 30,
+		    maxRadius: 90
+			};
+
+			var radiusDelta = values.maxRadius - values.minRadius;
+			var pointsDelta = values.maxPoints - values.minPoints;
+	    var radius = values.minRadius + Math.random() * radiusDelta;
+	    var points = values.minPoints + Math.floor(Math.random() * pointsDelta);
+	    //var path = createBlob(view.size * Point.random(), radius, points);
+	    //path.fillColor = '#000'
+
+			function createBlob(center, maxRadius, points) {
+			    var path = new Path();
+			    path.closed = true;
+			    for (var i = 0; i < points; i++) {
+			        var delta = new Point({
+			            length: (maxRadius * 0.5) + (Math.random() * maxRadius * 0.5),
+			            angle: (360 / points) * i
+			        });
+			        path.add(center + delta);
+			    }
+			    path.smooth();
+			    return path;
+			}
+
+			//Handler function that is called whenever a view is resized
+			function onResize(event) {
+				project.activeLayer.position = view.center;
+			}
+			onResize();
+		
+			// Add this function to the window, or 'global' scope, so Javascript can reach it
+			window.createRing = function(index) {
+				var ring = createBlob(view.size * Point.random(), radius, points);
+				//var ring = new Path.Circle(new Point(225, 100), 50);
+				ring.fillColor = '#000';
+				//ring.strokeWidth = 10;
+				ring.position = view.center;
+				ring.opacity = 1;
+				rings.push(ring);
+			}
+			
+
+			//The Animation Loop
+
+			function onFrame(event) {
+				
+				// Animate visible rings
+				var len = rings.length;
+				for(var i = 0; i < len; i++) {
+					var thisRing = rings[i];
+					// scale up					
+					thisRing.scale(1.06);
+					// fade ring out
+					var newOpacity = thisRing.opacity - 0.07;
+					// if faded to 0, remove from canvas
+					if(newOpacity <= 0) {
+						thisRing.remove();
+						rings.unshift();
+					} else {
+						thisRing.opacity = newOpacity;
+					}
+				}
+			}
+
+		</script>
+
+	</head>
+	<body>
+		<!-- Create canvas -->
+		<canvas id="myCanvas" resize></canvas>
+		<p>This is modified from a tutorial from here: <a href:"http://www.computerarts.co.uk/tutorials/create-html5-audio-visualisations">link</a></p>
+	</body>
+</html>

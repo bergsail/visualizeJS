@@ -35,6 +35,7 @@ window.onload = function() {
 		
     var source = context.createBufferSource();
     source.buffer = buffer;
+    buffer.looping = true;
     source.connect(context.destination);
     source.noteOn(0); // Play sound immediately
 	};
