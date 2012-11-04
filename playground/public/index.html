@@ -34,8 +34,8 @@
 		  // create a sound
 			var sound	= webaudio.createSound();
 			// load sound.wav and play it
-			//sound.load('sound/step1.ogg', function(sound){
-			sound.load('sound/LMFAO_Party_Rock_Anthem_8Bit.mp3', function(sound){
+			sound.load('sound/step1.ogg', function(sound){
+			//sound.load('sound/LMFAO_Party_Rock_Anthem_8Bit.mp3', function(sound){
 				sound.loop(true).play();
 			});
 
@@ -45,6 +45,9 @@
 			text.fillColor = 'black';
 			text.content = 'Music loading ...';
 			view.draw();
+
+			var txt = new PointText(new Point(30, 30));
+			txt.fillColor = 'black';
 
 
 			//sound.onload = function() {			<-funktioniert leider nicht
@@ -89,6 +92,8 @@
 				scale		*= range;
 				scale		+= offset;
 
+				txt.content = 'Scale: ' + scale;
+
 				if (scale != 0){
 					//blob mit der frequenz bewegen
 					//ich haette das gern weniger langweilig
@@ -102,8 +107,8 @@
 	          path.segments[i].point.x = delta.x + segment.x;
 			    }
 					path.smooth();
-					view.draw();
 				}
+				view.draw();
 			}; 
 
 		}
