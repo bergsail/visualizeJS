@@ -14,10 +14,15 @@
 		</style>
 
 		<script type="text/javascript">
+		//damit paper mit js funtioniert
 		paper.install(window);
+
 		window.onload = function() {
+			//damit paper mit js funtioniert
 			paper.setup('myCanvas');
 
+
+			//fuer sound sorgen
 			try {
 				// init the library
 		    var webaudio	= new WebAudio();
@@ -34,27 +39,39 @@
 				sound.loop(true).play();
 			});
 
+
+
+			var text = new PointText(new Point(view.center.x - 30, view.center.y));
+			text.fillColor = 'black';
+			text.content = 'Music loading ...';
+			view.draw();
+
+
+			//sound.onload = function() {			<-funktioniert leider nicht
+			//blob vorbereiten und punkte speichern
 			var path = new Path();
       path.fillColor = 'black';
-
-      var points = 20 + Math.floor(Math.random() * 10);
+      var segs = [];
+      var points = 30;
       path.closed = true;
       for (var i = 0; i <= points; i++) {
-          var delta = new paper.Point({
-            length: (150 * 0.5) + (Math.random() * 150 * 0.5),
+          var delta = new Point({
+            length: 20 + (Math.random() * 150),
             angle: (360 / points) * i
           });
           delta.y += view.center.y;
           delta.x += view.center.x; 
+          segs[i] = delta;
           path.add(delta);
       }
-      path.smooth();
-      view.draw();
-				
+      
 
-			setInterval(onFrame, 1000/60);
-			
-			function onFrame(event){
+  		setInterval(update, 1000/60);
+		
+
+			//wird bis zu 60 mal die sekunde wiederholt
+			function update(){
+				//ich bin mir nicht sicher, wozu das gut ist...
 				// neutral value
 				var min		= 0;
 				var max		= 1;
@@ -72,14 +89,21 @@
 				scale		*= range;
 				scale		+= offset;
 
-				//path.segments[0].point.y = scale*100;
-
-	    	for (var i = 0; i <= points; i++) {
-	        var segment = path.segments[i];	        
-	        segment.point.y = scale * height + 100;
-		    }
-				
-				view.draw();
+				if (scale != 0){
+					//blob mit der frequenz bewegen
+					//ich haette das gern weniger langweilig
+		    	for (var i = 0; i <= points; i++) {
+		        var segment = segs[i];
+		        var delta = new Point({
+	            length: 50 + (100 * scale),
+	            angle: (360 / points) * i
+	          });
+	          path.segments[i].point.y = delta.y + segment.y;
+	          path.segments[i].point.x = delta.x + segment.x;
+			    }
+					path.smooth();
+					view.draw();
+				}
 			}; 
 
 		}
