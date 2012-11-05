@@ -34,8 +34,8 @@
 		  // create a sound
 			var sound	= webaudio.createSound();
 			// load sound.wav and play it
-			sound.load('sound/step1.ogg', function(sound){
-			//sound.load('sound/LMFAO_Party_Rock_Anthem_8Bit.mp3', function(sound){
+			//sound.load('sound/step1.ogg', function(sound){
+			sound.load('sound/LMFAO_Party_Rock_Anthem_8Bit.mp3', function(sound){
 				sound.loop(true).play();
 			});
 
@@ -68,8 +68,30 @@
           path.add(delta);
       }
       
-
+      var counter = 0;
+      var paths = [];
   		setInterval(update, 1000/60);
+
+
+  		function redraw(){
+  			var newPath = path.clone();
+  			newPath.opacity -= 0.5;
+  			newPath.scale(1.3);
+  			paths.push(newPath);
+  			path.removeSegments();
+  			//neuen path
+				for (var i = 0; i <= points; i++) {
+          var delta = new Point({
+            length: 20 + (Math.random() * 150),
+            angle: (360 / points) * i
+          });
+          delta.y += view.center.y;
+          delta.x += view.center.x; 
+          segs[i] = delta;
+          path.add(delta);
+      	}
+		    path.smooth();
+			};
 		
 
 			//wird bis zu 60 mal die sekunde wiederholt
@@ -80,7 +102,7 @@
 				var max		= 1;
 				var offset	= 0;
 				var range	= 1;
-				var tweenFn	= TWEEN.Easing.Linear.None;
+				var tweenFn	= TWEEN.Easing.Linear.None;  //hier kann man verschiedene methoden aussuchen
 				// normalization of the scale
 				var scale	= sound.amplitude();
 				// apply the formula
@@ -92,24 +114,47 @@
 				scale		*= range;
 				scale		+= offset;
 
-				txt.content = 'Scale: ' + scale;
+				txt.content = 'Scale: ' + scale + '    counter  ' + counter;
+
 
 				if (scale != 0){
+
+					counter++;
+					if (counter==150){
+						redraw();
+						counter = 0;
+					}
 					//blob mit der frequenz bewegen
 					//ich haette das gern weniger langweilig
 		    	for (var i = 0; i <= points; i++) {
 		        var segment = segs[i];
 		        var delta = new Point({
-	            length: 50 + (100 * scale),
+	            length: (50 * Math.pow(2*scale,2)),
 	            angle: (360 / points) * i
 	          });
 	          path.segments[i].point.y = delta.y + segment.y;
 	          path.segments[i].point.x = delta.x + segment.x;
 			    }
-					path.smooth();
+			    path.smooth();
+
+					var len = paths.length;
+					for(var i = 0; i < len; i++) {
+						var thisPath = paths[i];
+						// scale up					
+						thisPath.scale(1.005);
+						// fade ring out
+						var newOpacity = thisPath.opacity - 0.001;
+						// if faded to 0, remove from canvas
+						if(newOpacity <= 0) {
+							thisPath.remove();
+							paths.unshift();
+						} else {
+							thisPath.opacity = newOpacity;
+						}
+					}
+					view.draw();
 				}
-				view.draw();
-			}; 
+			};
 
 		}
 
